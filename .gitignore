@@ -4,6 +4,7 @@ node_modules
 
 
 # local env files
+.env
 .env.local
 .env.*.local
 
@@ -37,3 +38,7 @@ test*.bat
 # Temporary files
 temp.*
 *.tmp
+
+# Claude files
+.claude
+.claude/

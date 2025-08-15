@@ -12,13 +12,13 @@
   <img src="https://img.shields.io/badge/Author-阿懒同学-orange.svg" alt="Author">
 </p>
 <p align="center">
-  <a href="https://edgeone.ai/pages/new?repository-url=https%3A%2F%2Fgithub.com%2Fhloolx%2Fmini-cover-lsky&output-directory=dist&install-command=npm%20install&build-command=npm%20run%20build" target="_blank" rel="noopener noreferrer">
+  <a href="https://console.cloud.tencent.com/edgeone/pages/new?repository-url=https%3A%2F%2Fgithub.com%2Fhloolx%2Fmini-cover-lsky&output-directory=dist&install-command=npm%20install&build-command=npm%20run%20build" target="_blank" rel="noopener noreferrer">
     <img src="https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg" alt="Deploy with EdgeOne Pages">
   </a>
 </p>
 <p align="center">🎮 在线演示：
-  <a href="#" target="_blank">
-  待部署
+  <a href="https://cover.15o.cc" target="_blank">
+  https://cover.15o.cc
   </a>
 </p>
 

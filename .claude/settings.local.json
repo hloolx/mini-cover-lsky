@@ -5,7 +5,8 @@
       "Bash(curl:*)",
       "Bash(cmd /c:*)",
       "Bash(powershell:*)",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "WebFetch(domain:edgeone.cloud.tencent.com)"
     ],
     "deny": [],
     "ask": [],
