@@ -12,14 +12,8 @@
   <img src="https://img.shields.io/badge/Author-阿懒同学-orange.svg" alt="Author">
 </p>
 <p align="center">
-  <a href="https://vercel.com/new/clone?repository-url=https://github.com/hloolx/mini-cover-lsky">
-    <img src="https://vercel.com/button" alt="Deploy with Vercel" />
-  </a>
   <a href="https://edgeone.ai/pages/new?repository-url=https%3A%2F%2Fgithub.com%2Fhloolx%2Fmini-cover-lsky&output-directory=dist&install-command=npm%20install&build-command=npm%20run%20build" target="_blank" rel="noopener noreferrer">
     <img src="https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg" alt="Deploy with EdgeOne Pages">
-  </a>
-  <a href="https://app.netlify.com/start/deploy?repository=https://github.com/hloolx/mini-cover-lsky">
-    <img src="https://www.netlify.com/img/deploy/button.svg" alt="Deploy to Netlify" />
   </a>
 </p>
 <p align="center">🎮 在线演示：
@@ -31,6 +25,14 @@
 ## 📖 简介
 
 Mini-Cover-Lsky 是一个功能强大的在线海报封面制作工具，基于 Mini-Cover 项目优化升级，集成了 LskyPro 图床功能。专为博客、短视频、社交媒体设计，提供更丰富的自定义选项和更便捷的操作体验。
+
+## 📸 项目预览
+
+<p align="center">
+  <img src="PixPin_2025-08-15_10-51-37.png" alt="LskyPro图床配置界面" width="600">
+  <br>
+  <em>新增的 LskyPro 图床配置功能，支持自定义API地址和Token管理</em>
+</p>
 
 ## ✨ 核心特性
 
@@ -44,7 +46,7 @@ Mini-Cover-Lsky 是一个功能强大的在线海报封面制作工具，基于 
 
 ### 🆕 新增优化
 - 🎭 **多种字体导入** - 支持导入和使用多种自定义字体，让设计更具个性
-- 🖼️ **兰空图床集成** - 支持 LskyPro 图床上传，自动获取图片链接
+- 🖼️ **兰空图床集成** - 支持 LskyPro 图床上传，自动获取图片链接（[查看配置指南](LSKY_CONFIG.md)）
 - 🎨 **增强背景功能** - 新增背景图片支持，提供更丰富的视觉效果
 - 📎 **便捷图标操作** - 支持图标拖入和粘贴，操作更加流畅
 - 🔍 **双渠道图标获取** - 新增两个图标获取渠道，资源更加丰富

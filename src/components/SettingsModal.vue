@@ -254,32 +254,32 @@
                          'border-yellow-300': font.status === 'loading',
                          'border-red-300': font.status === 'error'
                        }">
-                    <div class="flex items-center gap-2 flex-1">
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
                       <!-- 状态图标 -->
                       <Icon v-if="font.status === 'loading'" 
                             icon="mdi:loading" 
-                            class="w-4 h-4 text-yellow-500 animate-spin" />
+                            class="w-4 h-4 text-yellow-500 animate-spin flex-shrink-0" />
                       <Icon v-else-if="font.status === 'success'" 
                             icon="mdi:check-circle" 
-                            class="w-4 h-4 text-green-500" />
+                            class="w-4 h-4 text-green-500 flex-shrink-0" />
                       <Icon v-else-if="font.status === 'error'" 
                             icon="mdi:alert-circle" 
-                            class="w-4 h-4 text-red-500" />
+                            class="w-4 h-4 text-red-500 flex-shrink-0" />
                       
-                      <div class="flex-1">
-                        <p class="text-sm font-medium" :style="{ fontFamily: font.name }">
+                      <div class="flex-1 min-w-0 overflow-hidden">
+                        <p class="text-sm font-medium truncate" :style="{ fontFamily: font.name }">
                           {{ font.name || '正在获取字体名称...' }}
                         </p>
                         <p class="text-xs text-gray-500 truncate">
                           {{ font.url }}
                         </p>
-                        <p v-if="font.error" class="text-xs text-red-500">
+                        <p v-if="font.error" class="text-xs text-red-500 truncate">
                           {{ font.error }}
                         </p>
                       </div>
                     </div>
                     
-                    <div class="flex items-center gap-1">
+                    <div class="flex items-center gap-1 flex-shrink-0 ml-2">
                       <!-- 重试按钮 -->
                       <button v-if="font.status === 'error'"
                               @click="retryFont(index)"
