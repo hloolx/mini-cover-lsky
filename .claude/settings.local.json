@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:lsky-pro.apifox.cn)",
+      "Bash(curl:*)",
+      "Bash(cmd /c:*)",
+      "Bash(powershell:*)",
+      "Bash(del:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "defaultMode": "acceptEdits"
+  }
+}
