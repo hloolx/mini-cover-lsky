@@ -163,8 +163,34 @@
         </div>
       </div>
 
-      <!-- 背景模糊设置 -->
-      <div class="flex flex-col sm:flex-row items-center gap-3 mb-3">
+      <!-- 背景类型选择 -->
+      <div class="flex gap-2 mb-3">
+        <button
+          @click="setBgType('color')"
+          :class="[
+            'flex-1 px-3 py-2 rounded-lg transition-all text-sm',
+            state.bgType === 'color' 
+              ? 'bg-blue-500 text-white' 
+              : 'bg-gray-200 hover:bg-gray-300'
+          ]"
+        >
+          纯色背景
+        </button>
+        <button
+          @click="setBgType('gradient')"
+          :class="[
+            'flex-1 px-3 py-2 rounded-lg transition-all text-sm',
+            state.bgType === 'gradient' 
+              ? 'bg-blue-500 text-white' 
+              : 'bg-gray-200 hover:bg-gray-300'
+          ]"
+        >
+          渐变背景
+        </button>
+      </div>
+
+      <!-- 纯色背景设置 -->
+      <div v-if="state.bgType === 'color'" class="flex flex-col sm:flex-row items-center gap-3 mb-3">
         <div class="w-full sm:flex-[6] flex items-center gap-2">
           <label class="whitespace-nowrap" for="inputBgBlur">背景模糊</label>
           <input 
@@ -186,6 +212,61 @@
             @input="updatePreview('bgColor', $event)"
             class="w-full h-6 rounded cursor-pointer"
           >
+        </div>
+      </div>
+
+      <!-- 渐变背景设置 -->
+      <div v-if="state.bgType === 'gradient'" class="flex items-center gap-2 mb-3">
+        <!-- 起始颜色 -->
+        <div class="flex items-center gap-1">
+          <label class="text-xs text-gray-600" for="inputGradientStart">起始</label>
+          <input 
+            type="color"
+            id="inputGradientStart"
+            v-model="state.bgGradientStart"
+            @input="updatePreview('bgGradientStart', $event)"
+            class="w-8 h-8 rounded cursor-pointer border border-gray-300"
+            title="渐变起始颜色"
+          >
+        </div>
+        
+        <!-- 角度选择器 -->
+        <AnglePicker
+          v-model="state.bgGradientAngle"
+          :start-color="state.bgGradientStart"
+          :end-color="state.bgGradientEnd"
+          @change="onGradientAngleChange"
+        />
+        
+        <!-- 结束颜色 -->
+        <div class="flex items-center gap-1">
+          <label class="text-xs text-gray-600" for="inputGradientEnd">结束</label>
+          <input 
+            type="color"
+            id="inputGradientEnd"
+            v-model="state.bgGradientEnd"
+            @input="updatePreview('bgGradientEnd', $event)"
+            class="w-8 h-8 rounded cursor-pointer border border-gray-300"
+            title="渐变结束颜色"
+          >
+        </div>
+        
+        <!-- 快速方向按钮 -->
+        <div class="flex gap-1 ml-auto">
+          <button
+            v-for="angle in [0, 45, 90, 135, 180]"
+            :key="angle"
+            @click="setGradientAngle(angle)"
+            :class="[
+              'px-2 py-1 text-xs rounded transition-all',
+              Math.abs(state.bgGradientAngle - angle) < 5
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            ]"
+            :title="`${angle}°`"
+          >
+            {{ angle }}°
+          </button>
         </div>
       </div>
 
@@ -388,15 +469,176 @@
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-all duration-300 hover:border-green-500"
         >
       </div>
+      
+      <!-- 导出设置（可折叠） -->
+      <div class="mb-3">
+        <button
+          @click="showExportSettings = !showExportSettings"
+          class="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-300"
+        >
+          <div class="flex items-center gap-2">
+            <Icon icon="mdi:export" class="w-5 h-5 text-blue-500" />
+            <span class="text-sm font-medium">导出设置</span>
+            <span class="text-xs text-gray-500">
+              ({{ state.exportWidth }}×{{ state.exportHeight }} {{ state.exportFormat.toUpperCase() }})
+            </span>
+            <span v-if="Math.abs((state.exportWidth / state.exportHeight) - (1920 / 1080)) > 0.01" 
+                  class="text-xs text-orange-500 ml-1" 
+                  title="宽高比与默认值不同">
+              <Icon icon="mdi:alert" class="w-3 h-3 inline" />
+            </span>
+          </div>
+          <Icon 
+            :icon="showExportSettings ? 'mdi:chevron-up' : 'mdi:chevron-down'" 
+            class="w-5 h-5 text-gray-500"
+          />
+        </button>
+        
+        <Transition
+          enter-from-class="opacity-0 max-h-0"
+          enter-to-class="opacity-100 max-h-[800px]"
+          enter-active-class="transition-all duration-300 ease-out overflow-hidden"
+          leave-from-class="opacity-100 max-h-[800px]"
+          leave-to-class="opacity-0 max-h-0"
+          leave-active-class="transition-all duration-300 ease-in overflow-hidden"
+        >
+          <div v-if="showExportSettings" class="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
+            <!-- 快速平台切换 -->
+            <div>
+              <label class="block text-sm font-medium mb-2 text-gray-700">快速选择</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button
+                  v-for="platform in quickPlatforms"
+                  :key="platform.value"
+                  @click="quickSelectPlatform(platform)"
+                  :class="[
+                    'px-3 py-2 rounded-lg border transition-all',
+                    state.exportPlatform === platform.value
+                      ? 'bg-blue-100 text-blue-700 border-blue-400'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+                  ]"
+                >
+                  <div class="text-sm font-medium">{{ platform.label }}</div>
+                  <div class="text-xs opacity-70 mt-0.5">{{ platform.size }}</div>
+                </button>
+              </div>
+            </div>
+            
+            <!-- 平台选择 -->
+            <div>
+              <label class="block text-sm font-medium mb-2 text-gray-700">所有平台</label>
+              <select 
+                v-model="state.exportPlatform"
+                @change="handlePlatformChange"
+                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+              >
+                <option value="custom">自定义尺寸</option>
+                <option value="wechat">微信公众号 (900×383)</option>
+                <option value="juejin">掘金 (900×600)</option>
+                <option value="zhihu">知乎 (1080×607)</option>
+                <option value="aliyun">阿里云开发者 (1000×600)</option>
+                <option value="tencent">腾讯云开发者 (960×540)</option>
+                <option value="csdn">CSDN (1080×607)</option>
+                <option value="toutiao">今日头条 (900×500)</option>
+                <option value="jianshu">简书 (1250×1000)</option>
+              </select>
+            </div>
+            
+            <!-- 尺寸设置 -->
+            <div>
+              <label class="block text-sm font-medium mb-2 text-gray-700">尺寸设置</label>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">宽度 (px)</label>
+                  <input 
+                    type="number"
+                    v-model.number="state.exportWidth"
+                    :disabled="state.exportPlatform !== 'custom'"
+                    min="100"
+                    max="4000"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none disabled:bg-gray-100"
+                  >
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">高度 (px)</label>
+                  <input 
+                    type="number"
+                    v-model.number="state.exportHeight"
+                    :disabled="state.exportPlatform !== 'custom'"
+                    min="100"
+                    max="4000"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none disabled:bg-gray-100"
+                  >
+                </div>
+              </div>
+              <!-- 缩放信息显示 -->
+              <div class="mt-3 p-2 bg-blue-50 rounded-lg">
+                <div class="flex flex-wrap items-center gap-3 text-xs text-blue-700">
+                  <div class="flex items-center gap-1">
+                    <Icon icon="mdi:aspect-ratio" class="w-3 h-3" />
+                    <span>宽高比: {{ (state.exportWidth / state.exportHeight).toFixed(2) }}</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <Icon icon="mdi:magnify" class="w-3 h-3" />
+                    <span>缩放: {{ ((state.exportWidth / 1920) * 100).toFixed(0) }}%</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <Icon icon="mdi:image-size-select-actual" class="w-3 h-3" />
+                    <span>{{ state.exportWidth }}×{{ state.exportHeight }}px</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 格式选择 -->
+            <div>
+              <label class="block text-sm font-medium mb-2 text-gray-700">导出格式</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button
+                  v-for="format in exportFormats"
+                  :key="format.value"
+                  @click="state.exportFormat = format.value; updateCanvasSize();"
+                  :class="[
+                    'px-2 py-1.5 rounded-lg border transition-all text-sm',
+                    state.exportFormat === format.value 
+                      ? 'bg-blue-500 text-white border-blue-500' 
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                  ]"
+                >
+                  <div class="text-sm font-medium">{{ format.label }}</div>
+                  <div class="text-xs opacity-70 mt-0.5">{{ format.desc }}</div>
+                </button>
+              </div>
+            </div>
+            
+            <!-- 质量设置 -->
+            <div v-if="state.exportFormat !== 'png'">
+              <label class="block text-sm font-medium mb-2 text-gray-700">
+                图片质量: {{ Math.round(state.exportQuality * 100) }}%
+              </label>
+              <input 
+                type="range"
+                v-model.number="state.exportQuality"
+                min="0.1"
+                max="1"
+                step="0.05"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              >
+            </div>
+          </div>
+        </Transition>
+      </div>
 
       <!-- 操作按钮 -->
       <div class="flex gap-3">
         <button 
-          @click="saveWebp"
-          class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm flex items-center justify-center gap-2"
+          @click="exportImage"
+          :disabled="isExporting"
+          class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Icon icon="mdi:content-save" class="w-4 h-4" />
-          <span>保存图片</span>
+          <Icon :icon="isExporting ? 'mdi:loading' : 'mdi:content-save'" 
+                :class="['w-4 h-4', isExporting && 'animate-spin']" />
+          <span>{{ isExporting ? '正在导出...' : '导出图片' }}</span>
         </button>
         <ImageUploader canvas-id="canvasPreview" />
         <button 
@@ -411,15 +653,41 @@
 
     <!-- 画布预览 -->
     <div class="relative w-full lg:flex-[2] overflow-hidden">
-      <canvas 
-        id="canvasPreview" 
-        width="1000" 
-        height="500" 
-        @dragover.prevent="handleCanvasDragOver"
-        @dragleave.prevent="handleCanvasDragLeave"
-        @drop.prevent="handleCanvasDrop" 
-        class="w-full h-auto rounded-lg shadow-md"
-      ></canvas>
+      <div class="bg-gray-100 rounded-lg p-2">
+        <div class="text-xs text-gray-500 mb-1 text-center">
+          <div class="flex items-center justify-center gap-3">
+            <span>预览: {{ canvasActualWidth }}×{{ canvasActualHeight }}</span>
+            <Icon icon="mdi:arrow-right" class="w-3 h-3" />
+            <span>导出: {{ state.exportWidth }}×{{ state.exportHeight }}</span>
+            <span class="text-blue-600 font-medium">({{ scalePercentage }}%)</span>
+          </div>
+        </div>
+        <div class="relative inline-block w-full">
+          <!-- 导出尺寸比例指示框 -->
+          <div 
+            v-if="showExportSizeIndicator"
+            class="absolute border-2 border-dashed border-blue-400 rounded-lg pointer-events-none"
+            :style="exportSizeIndicatorStyle"
+          >
+            <div class="absolute -top-6 left-0 text-xs text-blue-600 whitespace-nowrap">
+              导出比例: {{ state.exportWidth }}×{{ state.exportHeight }}
+              <span v-if="scalePercentage" class="ml-2 text-gray-500">
+                (缩放: {{ scalePercentage }}%)
+              </span>
+            </div>
+          </div>
+          <canvas 
+            id="canvasPreview" 
+            :width="state.exportWidth" 
+            :height="state.exportHeight" 
+            @dragover.prevent="handleCanvasDragOver"
+            @dragleave.prevent="handleCanvasDragLeave"
+            @drop.prevent="handleCanvasDrop" 
+            class="w-full h-auto rounded-lg shadow-md bg-white relative"
+            :style="canvasPreviewStyle"
+          ></canvas>
+        </div>
+      </div>
       <!-- 图标区高亮 -->
       <div
         v-if="dragHighlight === 'icon'"
@@ -493,17 +761,23 @@
 import { 
   state, 
   updatePreview, 
-  saveWebp, 
+  saveImage, 
   drawSquareImage, 
   initialize,
   drawBackground,
   composeCanvases,
   squareCtx,
-  squareCanvas
+  squareCanvas,
+  updateBackgroundGradientDirection,
+  updateBackgroundGradientAngle,
+  updateCanvasSize,
+  drawText,
+  drawWatermark
 } from '../assets/script.js';
 import { defaultConfig } from '../config';
 import ImageUploader from './ImageUploader.vue';
 import SettingsModal from './SettingsModal.vue';
+import AnglePicker from './AnglePicker.vue';
 import { Icon } from '@iconify/vue';
 import { preloadFonts } from '../utils/fontLoader';
 
@@ -511,7 +785,64 @@ export default {
   components: {
     ImageUploader,
     SettingsModal,
+    AnglePicker,
     Icon
+  },
+  computed: {
+    canvasPreviewStyle() {
+      // 预览画布保持原始比例，不进行拉伸
+      return {
+        maxWidth: '100%',
+        height: 'auto'
+      };
+    },
+    canvasActualWidth() {
+      const canvas = document.getElementById('canvasPreview');
+      return canvas ? canvas.width : 1920;
+    },
+    canvasActualHeight() {
+      const canvas = document.getElementById('canvasPreview');
+      return canvas ? canvas.height : 1080;
+    },
+    scalePercentage() {
+      // 计算相对于基准尺寸（1920x1080）的缩放比例
+      const baseWidth = 1920;
+      const scaleRatio = this.state.exportWidth / baseWidth;
+      return Math.round(scaleRatio * 100);
+    },
+    showExportSizeIndicator() {
+      // 当导出比例与画布比例不同时显示指示框
+      const canvasRatio = 1000 / 500;
+      const exportRatio = this.state.exportWidth / this.state.exportHeight;
+      return Math.abs(canvasRatio - exportRatio) > 0.01;
+    },
+    exportSizeIndicatorStyle() {
+      // 计算导出尺寸指示框的样式
+      const canvasRatio = 1000 / 500;
+      const exportRatio = this.state.exportWidth / this.state.exportHeight;
+      
+      let width = '100%';
+      let height = '100%';
+      let left = '0';
+      let top = '0';
+      
+      if (exportRatio > canvasRatio) {
+        // 导出更宽，高度受限
+        height = `${(canvasRatio / exportRatio) * 100}%`;
+        top = `${(100 - (canvasRatio / exportRatio) * 100) / 2}%`;
+      } else if (exportRatio < canvasRatio) {
+        // 导出更高，宽度受限
+        width = `${(exportRatio / canvasRatio) * 100}%`;
+        left = `${(100 - (exportRatio / canvasRatio) * 100) / 2}%`;
+      }
+      
+      return {
+        width,
+        height,
+        left,
+        top
+      };
+    }
   },
   data() {
     return {
@@ -525,8 +856,56 @@ export default {
       dragCounter: 0,
       showPasteTip: false,
       showPasteDialogVisible: false,
-      pendingPasteFile: null
+      pendingPasteFile: null,
+      showExportSettings: false,
+      isExporting: false,
+      exportFormats: [
+        { value: 'webp', label: 'WEBP', desc: '高压缩' },
+        { value: 'png', label: 'PNG', desc: '无损' },
+        { value: 'jpeg', label: 'JPEG', desc: '有损' }
+      ],
+      gradientDirections: [
+        { value: 'to-right', label: '→', icon: 'mdi:arrow-right' },
+        { value: 'to-left', label: '←', icon: 'mdi:arrow-left' },
+        { value: 'to-bottom', label: '↓', icon: 'mdi:arrow-down' },
+        { value: 'to-top', label: '↑', icon: 'mdi:arrow-up' },
+        { value: 'to-bottom-right', label: '↘', icon: 'mdi:arrow-bottom-right' },
+        { value: 'to-bottom-left', label: '↙', icon: 'mdi:arrow-bottom-left' },
+        { value: 'to-top-right', label: '↗', icon: 'mdi:arrow-top-right' },
+        { value: 'to-top-left', label: '↖', icon: 'mdi:arrow-top-left' }
+      ],
+      canvasResizeTimer: null,
+      platformSizes: {
+        custom: { width: 1920, height: 1080 },
+        wechat: { width: 900, height: 383 },
+        juejin: { width: 900, height: 600 },
+        zhihu: { width: 1080, height: 607 },
+        aliyun: { width: 1000, height: 600 },
+        tencent: { width: 960, height: 540 },
+        csdn: { width: 1080, height: 607 },
+        toutiao: { width: 900, height: 500 },
+        jianshu: { width: 1250, height: 1000 }
+      },
+      quickPlatforms: [
+        { value: 'custom', label: '自定义', size: '1920×1080' },
+        { value: 'wechat', label: '微信', size: '900×383' },
+        { value: 'juejin', label: '掘金', size: '900×600' }
+      ]
     };
+  },
+  watch: {
+    'state.exportWidth': {
+      handler: 'handleExportSizeChange',
+      immediate: false
+    },
+    'state.exportHeight': {
+      handler: 'handleExportSizeChange',
+      immediate: false
+    },
+    'state.exportPlatform': {
+      handler: 'handlePlatformChange',
+      immediate: false
+    }
   },
   async mounted() {
     // 刷新字体配置
@@ -550,6 +929,7 @@ export default {
     }
     
     // 初始化画布（现在是异步的）
+    // initialize函数已经包含了所有必要的绘制
     await initialize();
     
     // Add click outside listener
@@ -586,6 +966,38 @@ export default {
     document.removeEventListener('paste', this.handlePaste);
   },
   methods: {
+    // Debounced handler for export size changes
+    handleExportSizeChange() {
+      // 使用防抖避免频繁重绘
+      if (this.canvasResizeTimer) {
+        clearTimeout(this.canvasResizeTimer);
+      }
+      this.canvasResizeTimer = setTimeout(() => {
+        this.updateCanvasSize();
+      }, 300); // 300ms 防抖
+    },
+    
+    // 动态更新画布尺寸
+    updateCanvasSize() {
+      const canvas = document.getElementById('canvasPreview');
+      if (!canvas) return;
+      
+      // 调用script.js中的updateCanvasSize函数
+      // 这个函数会重新创建内部canvas并重绘所有内容
+      updateCanvasSize(this.state.exportWidth, this.state.exportHeight);
+    },
+    
+    // 重绘画布内容
+    async redrawCanvas() {
+      // 直接调用script.js中的绘制函数
+      // 这些函数已经处理了正确的缩放
+      drawBackground();
+      drawText();
+      drawSquareImage();
+      drawWatermark();
+      composeCanvases();
+    },
+    
     loadStyles() {
       // 清除旧的字体链接
       document.querySelectorAll('link[data-font-import]').forEach(link => link.remove());
@@ -605,7 +1017,6 @@ export default {
       });
     },
     updatePreview,
-    saveWebp,
     loadIcon() {
       if (this.iconName) {
         this.iconUrl = `https://api.iconify.design/${this.iconName}.svg`;
@@ -829,6 +1240,93 @@ export default {
       // 清空图标并重新合成画布
       squareCtx.clearRect(0, 0, squareCanvas.width, squareCanvas.height);
       composeCanvases();
+    },
+    
+    // 设置背景类型
+    setBgType(type) {
+      state.bgType = type;
+      state.bgImageUrl = null;
+      drawBackground();
+      composeCanvases();
+    },
+    
+    // 设置渐变方向（保留兼容）
+    setGradientDirection(direction) {
+      state.bgGradientDirection = direction;
+      state.bgType = 'gradient';
+      state.bgImageUrl = null;
+      drawBackground();
+      composeCanvases();
+    },
+    
+    // 设置渐变角度
+    setGradientAngle(angle) {
+      state.bgGradientAngle = angle;
+      state.bgType = 'gradient';
+      state.bgImageUrl = null;
+      updateBackgroundGradientAngle(angle);
+    },
+    
+    // 渐变角度变化处理
+    onGradientAngleChange(angle) {
+      updateBackgroundGradientAngle(angle);
+    },
+    
+    // 处理平台变更
+    handlePlatformChange() {
+      const platformSizes = {
+        custom: { width: 1920, height: 1080 },
+        wechat: { width: 900, height: 383 },
+        juejin: { width: 900, height: 600 },
+        zhihu: { width: 1080, height: 607 },
+        aliyun: { width: 1000, height: 600 },
+        tencent: { width: 960, height: 540 },
+        csdn: { width: 1080, height: 607 },
+        toutiao: { width: 900, height: 500 },
+        jianshu: { width: 1250, height: 1000 }
+      };
+      
+      const { width, height } = this.platformSizes[state.exportPlatform] || this.platformSizes.custom;
+      state.exportWidth = width;
+      state.exportHeight = height;
+      
+      // 触发画布更新
+      this.handleExportSizeChange();
+    },
+    
+    // 快速选择平台
+    quickSelectPlatform(platform) {
+      state.exportPlatform = platform.value;
+      this.handlePlatformChange();
+    },
+    
+    
+    // 更新导出尺寸
+    updateExportSize() {
+      if (state.exportPlatform === 'custom') {
+        // 如果是自定义尺寸，允许用户输入
+        this.handleExportSizeChange();
+      }
+    },
+    
+    // 导出图片
+    async exportImage() {
+      if (this.isExporting) return;
+      
+      this.isExporting = true;
+      try {
+        await saveImage(
+          state.exportFormat,
+          state.exportQuality,
+          state.exportWidth,
+          state.exportHeight
+        );
+      } catch (error) {
+        console.error('导出失败:', error);
+        alert('导出图片失败，请重试');
+      } finally {
+        this.isExporting = false;
+      }
     }
   }
 };

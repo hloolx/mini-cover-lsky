@@ -73,11 +73,49 @@ export default {
       this.isUploading = true;
       const canvas = document.getElementById(this.canvasId);
       
-      canvas.toBlob(blob => {
-        this.uploadToLsky(blob);
-      }, 'image/webp');
+      // 从全局状态获取导出设置
+      import('../assets/script.js').then(({ state }) => {
+        const format = state.exportFormat || 'webp';
+        const quality = state.exportQuality || 0.95;
+        const width = state.exportWidth || 1920;
+        const height = state.exportHeight || 1080;
+        
+        // 创建临时画布用于调整尺寸
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = width;
+        exportCanvas.height = height;
+        const exportCtx = exportCanvas.getContext('2d');
+        
+        // 清空画布并填充白色背景
+        exportCtx.fillStyle = '#ffffff';
+        exportCtx.fillRect(0, 0, width, height);
+        
+        // 计算缩放比例
+        const scaleX = width / canvas.width;
+        const scaleY = height / canvas.height;
+        
+        // 绘制缩放后的内容
+        exportCtx.scale(scaleX, scaleY);
+        exportCtx.drawImage(canvas, 0, 0);
+        
+        // 确定MIME类型
+        const mimeType = format === 'png' ? 'image/png' : 
+                        format === 'jpeg' ? 'image/jpeg' : 
+                        'image/webp';
+        
+        // 确定文件扩展名
+        const extension = format === 'png' ? 'png' : 
+                         format === 'jpeg' ? 'jpg' : 
+                         'webp';
+        
+        const fileName = `Cover-${new Date().getTime()}.${extension}`;
+        
+        exportCanvas.toBlob(blob => {
+          this.uploadToLsky(blob, fileName);
+        }, mimeType, quality);
+      });
     },
-    uploadToLsky(blob) {
+    uploadToLsky(blob, fileName = 'Canvas-Ruom.webp') {
       // 使用配置的存储策略ID
       const storageId = this.storageId || localStorage.getItem('lsky_storage_id') || '';
       if (!storageId) {
@@ -87,7 +125,7 @@ export default {
       }
       
       const formData = new FormData();
-      formData.append('file', blob, 'Canvas-Ruom.webp');
+      formData.append('file', blob, fileName);
       formData.append('storage_id', storageId);
         
         const headers = {
